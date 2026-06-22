@@ -133,7 +133,7 @@ export async function POST(
       userData.full_name?.split(" ").slice(1).join(" ") || "User",
     phoneNumber: guardianProfile?.phone ?? "0900000000",
     txRef,
-    callbackUrl: ` https://2b8c-196-189-120-166.ngrok-free.app/api/payments/webhook`,
+    callbackUrl: ` ${appUrl}/api/payments/webhook`,
     returnUrl: `${appUrl}/dashboard/guardian/enrollments/${enrollmentId}/pay/result`,
   })
 
