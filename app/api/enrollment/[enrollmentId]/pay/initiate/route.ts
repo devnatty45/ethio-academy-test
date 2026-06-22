@@ -122,7 +122,7 @@ export async function POST(
   // ngrok URL so Chapa can reach the webhook endpoint.
   // In production this resolves to the real deployed domain.
   const appUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+    process.env.NEXT_PUBLIC_APP_URL ?? "https://ethio-academy-test.vercel.app/"
 
   const result = await initializeChapaPayment({
     amount: feeStructure.total_amount,
