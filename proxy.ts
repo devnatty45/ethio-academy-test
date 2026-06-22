@@ -84,6 +84,12 @@ function getIP(request: NextRequest): string {
   )
 }
 
+function isCronRequest(request: NextRequest): boolean {
+  const cronSecret = process.env.CRON_SECRET
+  if (!cronSecret) return false
+  return request.headers.get("x-cron-secret") === cronSecret
+}
+
 function matchesPrefix(pathname: string, prefixes: string[]): boolean {
   return prefixes.some(
     (prefix) =>
@@ -213,6 +219,11 @@ export async function proxy(request: NextRequest): Promise<Response> {
     const result = await rateLimiters.mfaVerification.limit(ip)
     if (!result.success) return rateLimitResponse(result.reset)
   }
+
+  // ── NEW STEP: Skip auth for valid Cron requests ──────────────────
+if (pathname.startsWith("/api/admin/maintenance") && isCronRequest(request)) {
+  return NextResponse.next()
+}
 
   // ── Step 3: Skip all auth checks for public routes ─────────────
   if (isPublicRoute(pathname)) {
