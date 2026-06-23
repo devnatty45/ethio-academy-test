@@ -63,6 +63,7 @@ const MFA_REQUIRED_PREFIXES = [
 const PUBLIC_ROUTES = [
   "/",
   "/auth/callback",
+  "/api/auth/mobile-google",
   "/auth/route-to-dashboard",
   "/dashboard/admin/mfa-setup",
   "/dashboard/admin/mfa-verify",
