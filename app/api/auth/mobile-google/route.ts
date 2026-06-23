@@ -27,8 +27,9 @@ export async function POST(request: NextRequest) {
 
     // 2. Fetch the user's role from your profiles/roles table
     // (Replace 'profiles' and 'role' with your exact database table/column fields)
+    // 2. Fetch the user's role from your actual public.users table
     const { data: profile, error: profileError } = await supabase
-      .from('profiles')
+      .from('users') // <---  Updated to match your schema
       .select('role')
       .eq('id', session.user.id)
       .single()
