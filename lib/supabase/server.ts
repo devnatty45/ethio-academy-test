@@ -12,46 +12,38 @@ export async function createClient() {
 
   // Extract the authorization header passed from the mobile app (if it exists)
   const authHeader = headerStore.get("Authorization")
-
-  // Fallback map: If a mobile client sends a Bearer token instead of cookies,
-  // we build a transient array for the underlying Supabase SSR library to digest.
-  let mobileCookieOption = {}
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    const token = authHeader.split(" ")[1]
-    mobileCookieOption = {
-      getAll() {
-        return [
-          { name: "sb-access-token", value: token }
-        ]
-      },
-      setAll() {
-        // Mobile state is managed client-side in Dart via Dio; no cookie setting needed.
-      },
-    }
-  }
+  const isMobileRequest = authHeader && authHeader.startsWith("Bearer ")
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      // If mobile token fallback is valid, use it; otherwise, default entirely to standard web cookies
-      cookies: Object.keys(mobileCookieOption).length > 0
-        ? mobileCookieOption
-        : {
-            getAll() {
-              return cookieStore.getAll()
-            },
-            setAll(cookiesToSet) {
-              try {
-                cookiesToSet.forEach(({ name, value, options }) =>
-                  cookieStore.set(name, value, options)
-                )
-              } catch {
-                // setAll called from a Server Component — safe to ignore
-                // Middleware handles session refresh
-              }
-            },
-          },
+      cookies: {
+        getAll() {
+          // If a mobile request provides a Bearer token, bypass local cookies entirely 
+          // and wrap the incoming JWT token in a virtual cookie format for Supabase Auth
+          if (isMobileRequest) {
+            const token = authHeader.split(" ")[1]
+            return [{ name: "sb-access-token", value: token }]
+          }
+          
+          // Otherwise, proceed normally with standard browser cookies (Web App)
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          // For mobile clients, state is managed app-side via tokens, so skip cookie changes
+          if (isMobileRequest) return
+
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // setAll called from a Server Component — safe to ignore
+            // Middleware handles session refresh
+          }
+        },
+      },
     }
   )
 }
