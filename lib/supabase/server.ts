@@ -10,8 +10,8 @@ export async function createClient() {
   const cookieStore = await cookies()
   const headerStore = await headers()
 
-  // Extract the authorization header passed from the mobile app (if it exists)
-  const authHeader = headerStore.get("Authorization")
+  // Case-Insensitivity Fix: Extract the authorization header using both common cases
+  const authHeader = headerStore.get("Authorization") || headerStore.get("authorization")
   const isMobileRequest = authHeader && authHeader.startsWith("Bearer ")
 
   return createServerClient(
