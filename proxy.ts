@@ -127,12 +127,10 @@ function getSessionInfo(request: NextRequest): {
   )
 
   // 2. Fallback: Check for Bearer Token auth (Mobile Client)
-  // Ensures mobile requests with Authorization headers bypass the cookie boundary checking step
-  if (!hasSession) {
-    const authHeader = request.headers.get("Authorization")
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      hasSession = true
-    }
+  // Support both uppercase and lowercase variations of the auth header
+  const authHeader = request.headers.get("Authorization") || request.headers.get("authorization")
+  if (!hasSession && authHeader && authHeader.startsWith("Bearer ")) {
+    hasSession = true
   }
 
   // Extract user ID from MFA cookie name to verify it belongs to
@@ -150,11 +148,6 @@ function getSessionInfo(request: NextRequest): {
       }
     }
   }
-
-  // Role is not readable from cookies — JWT must be verified server-side
-  // proxy.ts cannot verify role from cookies alone
-  // Role enforcement at proxy level is path-based only
-  // Full role check happens inside each route handler
 
   return { hasSession, userId, role: null, hasMfaCookie }
 }
@@ -199,6 +192,13 @@ export async function proxy(request: NextRequest): Promise<Response> {
   const ip = getIP(request)
   const isApiRoute = pathname.startsWith("/api/")
 
+  // FIX: Force preserve the incoming mobile authorization headers explicitly
+  const incomingAuth = request.headers.get("Authorization") || request.headers.get("authorization")
+  const requestHeaders = new Headers(request.headers)
+  if (incomingAuth) {
+    requestHeaders.set("Authorization", incomingAuth)
+  }
+
   // ── Step 1: Global rate limit ──────────────────────────────────
   const globalResult = await rateLimiters.global.limit(ip)
   if (!globalResult.success) {
@@ -233,12 +233,12 @@ export async function proxy(request: NextRequest): Promise<Response> {
 
   // ── Step 3: Skip auth for valid Cron requests ──────────────────
   if (pathname.startsWith("/api/admin/maintenance") && isCronRequest(request)) {
-    return NextResponse.next()
+    return NextResponse.next({ request: { headers: requestHeaders } })
   }
 
   // ── Step 4: Skip all auth checks for public routes ─────────────
   if (isPublicRoute(pathname)) {
-    return NextResponse.next()
+    return NextResponse.next({ request: { headers: requestHeaders } })
   }
 
   // ── Step 5: Auth presence check ────────────────────────────────
@@ -250,12 +250,7 @@ export async function proxy(request: NextRequest): Promise<Response> {
     }
 
     // ── Step 6: MFA cookie check for admin routes ───────────────
-    // This is a lightweight check — full JWT + role verification
-    // happens inside each route handler
-    // Admin routes require BOTH a session AND an MFA verified cookie
     if (matchesPrefix(pathname, MFA_REQUIRED_PREFIXES)) {
-      // MFA setup and verify pages are exempt (already in PUBLIC_ROUTES)
-      // API routes for MFA operations are also exempt
       const isMfaOperationRoute =
         pathname.startsWith("/api/admin/mfa/") ||
         pathname.startsWith("/api/master/mfa/")
@@ -266,7 +261,12 @@ export async function proxy(request: NextRequest): Promise<Response> {
     }
   }
 
-  return NextResponse.next()
+  // Always return the modified headers forward to the route handlers
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  })
 }
 
 export const config = {
