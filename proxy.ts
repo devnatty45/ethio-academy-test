@@ -117,13 +117,23 @@ function getSessionInfo(request: NextRequest): {
 } {
   const cookieNames = request.cookies.getAll().map((c) => c.name)
 
-  const hasSession = cookieNames.some(
+  // 1. Check for browser cookie auth (Web Client)
+  let hasSession = cookieNames.some(
     (name) =>
       name.startsWith("sb-") &&
       (name.endsWith("-auth-token") ||
         name.endsWith("-auth-token.0") ||
         name.endsWith("-auth-token.1"))
   )
+
+  // 2. Fallback: Check for Bearer Token auth (Mobile Client)
+  // Ensures mobile requests with Authorization headers bypass the cookie boundary checking step
+  if (!hasSession) {
+    const authHeader = request.headers.get("Authorization")
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      hasSession = true
+    }
+  }
 
   // Extract user ID from MFA cookie name to verify it belongs to
   // an actual session (MFA cookie is keyed by user ID)
@@ -221,17 +231,17 @@ export async function proxy(request: NextRequest): Promise<Response> {
     if (!result.success) return rateLimitResponse(result.reset)
   }
 
-  // ── NEW STEP: Skip auth for valid Cron requests ──────────────────
-if (pathname.startsWith("/api/admin/maintenance") && isCronRequest(request)) {
-  return NextResponse.next()
-}
+  // ── Step 3: Skip auth for valid Cron requests ──────────────────
+  if (pathname.startsWith("/api/admin/maintenance") && isCronRequest(request)) {
+    return NextResponse.next()
+  }
 
-  // ── Step 3: Skip all auth checks for public routes ─────────────
+  // ── Step 4: Skip all auth checks for public routes ─────────────
   if (isPublicRoute(pathname)) {
     return NextResponse.next()
   }
 
-  // ── Step 4: Auth presence check ────────────────────────────────
+  // ── Step 5: Auth presence check ────────────────────────────────
   if (matchesPrefix(pathname, AUTH_REQUIRED_PREFIXES)) {
     const { hasSession, hasMfaCookie } = getSessionInfo(request)
 
@@ -239,7 +249,7 @@ if (pathname.startsWith("/api/admin/maintenance") && isCronRequest(request)) {
       return unauthorizedResponse(request, isApiRoute)
     }
 
-    // ── Step 5: MFA cookie check for admin routes ───────────────
+    // ── Step 6: MFA cookie check for admin routes ───────────────
     // This is a lightweight check — full JWT + role verification
     // happens inside each route handler
     // Admin routes require BOTH a session AND an MFA verified cookie
