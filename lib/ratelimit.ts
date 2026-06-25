@@ -26,7 +26,7 @@ export const rateLimiters = {
   // Account recovery form submission — key by IP
   recoveryRequest: new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(3, "1 h"),
+    limiter: Ratelimit.slidingWindow(5, "1 h"),
     prefix: "rl:recovery_request",
     analytics: false,
   }),
