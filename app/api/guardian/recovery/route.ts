@@ -288,12 +288,21 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  // Verify authenticated session
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  return NextResponse.json({ message: "Not implemented" }, { status: 501 })
+  const adminClient = createAdminClient()
+
+  const { data: existingRequest } = await adminClient
+    .from("guardian_recovery_requests")
+    .select("id, status, confidence_level, created_at")
+    .eq("new_guardian_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single()
+
+  return NextResponse.json({ request: existingRequest ?? null })
 }
