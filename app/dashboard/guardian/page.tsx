@@ -48,6 +48,18 @@ export default async function GuardianDashboardPage() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {/* ── Log Out Form hitting your API route ── */}
+            <form action="/api/auth/signout" method="POST">
+              <Button 
+                type="submit" 
+                variant="ghost" 
+                size="sm" 
+                className="text-gray-500 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-red-950/30"
+              >
+                Log Out
+              </Button>
+            </form>
+
             <Button asChild variant="outline" size="sm" className="border-[#6c63ff]/30 text-[#6c63ff] hover:bg-[#6c63ff]/5 dark:border-[#6c63ff]/40 dark:text-[#9d97ff]">
               <Link href="/dashboard/guardian/add-student">
                 + Add Student
