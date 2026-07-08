@@ -7,6 +7,7 @@ import {
   requireMfaVerified,
 } from "@/lib/supabase/session"
 import { redirect } from "next/navigation"
+import { Button } from "@/components/ui/button"
 import MasterDashboardClient from "@/components/admin/master-dashboard-client"
 
 export default async function MasterDashboardPage() {
@@ -38,7 +39,21 @@ export default async function MasterDashboardPage() {
                 Welcome back, {user.full_name ?? user.email}
               </p>
             </div>
-            <div className="ml-auto">
+            
+            {/* Right-aligned action container */}
+            <div className="ml-auto flex items-center gap-3">
+              {/* ── Log Out Form hitting your API route ── */}
+              <form action="/api/auth/signout" method="POST">
+                <Button 
+                  type="submit" 
+                  variant="ghost" 
+                  size="sm"
+                  className="rounded-xl text-gray-500 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-red-950/30 transition-all"
+                >
+                  Log Out
+                </Button>
+              </form>
+
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[#6c63ff]/10 text-[#6c63ff] dark:text-[#9d97ff] border border-[#6c63ff]/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#6c63ff] animate-pulse" />
                 Master Admin
