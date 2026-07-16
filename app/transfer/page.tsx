@@ -15,10 +15,11 @@ export default function TransferTestPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          accountNumber: '1000123456789', // Mock Account Number
+          accountNumber: '1000123456789', // Mock CBE Account Number
           accountName: 'Test Student/Parent',
           amount: '100',
-          bankCode: '96e07fc7-f70e-4364-bb4e-670ab035771c', // CBE's unique test ID
+          // Note: In real testing, we should pull valid UUIDs dynamically from Chapa's /banks endpoint.
+          bankCode: '96e07fc7-f70e-4364-bb4e-670ab035771c', 
         }),
       });
 
@@ -27,11 +28,12 @@ export default function TransferTestPage() {
       if (result.success) {
         setResponseMessage(`Success! Transaction simulated. Chapa ID: ${result.data.data.reference}`);
       } else {
-        setResponseMessage(`Transfer Failed: ${result.error}`);
+        // FIXED: Stringify the response so you don't get [object Object]
+        setResponseMessage(`Transfer Failed: ${JSON.stringify(result.error || result)}`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setResponseMessage('An unexpected network error occurred.');
+      setResponseMessage(`An unexpected network error occurred: ${err.message || err}`);
     } finally {
       setLoading(false);
     }
@@ -59,7 +61,7 @@ export default function TransferTestPage() {
       </button>
 
       {responseMessage && (
-        <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f0f0f0', borderRadius: '5px', color: '#333' }}>
+        <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f0f0f0', borderRadius: '5px', color: '#333', wordBreak: 'break-word' }}>
           <strong>Status:</strong> {responseMessage}
         </div>
       )}
