@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Define the shape of the incoming request from your frontend
 interface TransferRequestPayload {
   accountNumber: string;
   accountName: string;
@@ -8,7 +7,6 @@ interface TransferRequestPayload {
   bankCode: string;
 }
 
-// Define the shape of Chapa's expected response (partial)
 interface ChapaResponse {
   message: string;
   status: string;
@@ -17,12 +15,20 @@ interface ChapaResponse {
   };
 }
 
+// 1. ADD GET HANDLER: Prevents 405 Method Not Allowed if the browser hits this route directly
+export async function GET() {
+  return NextResponse.json(
+    { message: "Chapa Transfer API Route is active. Send a POST request to make a transfer." },
+    { status: 200 }
+  );
+}
+
+// 2. POST HANDLER: Performs the actual transfer
 export async function POST(request: NextRequest) {
   try {
     const body: TransferRequestPayload = await request.json();
     const { accountNumber, accountName, amount, bankCode } = body;
 
-    // Generate a unique transaction reference
     const uniqueReference = `TRF-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
     const response = await fetch('https://api.chapa.co/v1/transfers', {
@@ -38,7 +44,7 @@ export async function POST(request: NextRequest) {
         bank_code: bankCode,
         currency: 'ETB',
         reference: uniqueReference,
-        status: 'success', // Simulates instant success in Test Mode
+        status: 'success', // Simulated success in Test Mode
       }),
     });
 
