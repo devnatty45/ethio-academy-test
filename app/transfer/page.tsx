@@ -12,16 +12,15 @@ export default function TransferTestPage() {
     
     try {
       const res = await fetch('/api/transfer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accountNumber: '1000123456789', // Mock CBE Account Number
-          accountName: 'Test Student/Parent',
-          amount: '100',
-          // Note: In real testing, we should pull valid UUIDs dynamically from Chapa's /banks endpoint.
-          bankCode: '96e07fc7-f70e-4364-bb4e-670ab035771c', 
-        }),
-      });
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    accountNumber: '1000123456789', // Mock CBE Account Number
+    accountName: 'Abebe Kebede',    // Clean English test name (No slashes or symbols)
+    amount: '100',
+    bankCode: '656',                // Numeric bank code (CBE)
+  }),
+});
 
       const result = await res.json();
       
