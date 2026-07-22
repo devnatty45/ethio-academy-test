@@ -8,7 +8,6 @@ import {
 import { createAdminClient } from "@/lib/supabase/admin"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import TeacherApprovalQueue from "@/components/admin/teacher-approval-queue"
 
 export default async function ManageTeachersPage() {
@@ -35,11 +34,20 @@ export default async function ManageTeachersPage() {
     : adminProfile?.branches
 
   // All teacher_profiles for this branch (pending, active, suspended)
-  const { data: branchTeachers } = await adminClient
+  // NOTE: teacher_profiles has TWO foreign keys to users (user_id and approved_by),
+  // so the embed MUST be disambiguated with !teacher_profiles_user_id_fkey, otherwise
+  // PostgREST fails with an ambiguity error and returns null data.
+  const { data: branchTeachers, error: teachersError } = await adminClient
     .from("teacher_profiles")
-    .select("id, full_name, phone, status, created_at, user_id, users(email)")
+    .select(
+      "id, full_name, phone, status, created_at, user_id, users!teacher_profiles_user_id_fkey(email)"
+    )
     .eq("branch_id", adminProfile?.assigned_branch_id)
     .order("created_at", { ascending: false })
+
+  if (teachersError) {
+    console.error("Failed to load branch teachers:", teachersError)
+  }
 
   const { data: allBranches } = await adminClient
     .from("branches")
