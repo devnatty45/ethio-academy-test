@@ -96,6 +96,16 @@ export default async function BranchDashboardPage() {
     </span>
   </Button>
 </Link>
+            <Link href="/dashboard/branch/sections">
+  <Button variant="outline" className="rounded-xl border-[#6c63ff]/30 text-[#6c63ff] hover:bg-[#6c63ff]/5">
+    <span className="flex items-center gap-2">
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
+      </svg>
+      Section Management
+    </span>
+  </Button>
+</Link>
           </div>
         </div>
 
