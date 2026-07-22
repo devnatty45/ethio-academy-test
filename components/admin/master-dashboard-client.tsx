@@ -29,6 +29,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Fee Structures", path: "/dashboard/master/fee-structures", icon: "💰", category: "config" },
   { label: "Document Rules", path: "/dashboard/master/document-requirement-rules", icon: "📄", category: "config" },
   { label: "Rejection Reasons", path: "/dashboard/master/rejection-reasons", icon: "❌", category: "config" },
+  { label: "Subjects", path: "/dashboard/master/subjects", icon: "📖", category: "config" },
   
   // Management
   { label: "Branch Admins", path: "/dashboard/master/branch-admins", icon: "👤", category: "management" },
