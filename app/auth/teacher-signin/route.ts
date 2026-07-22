@@ -2,6 +2,7 @@
 // Purpose: Set teacher signup intent cookie, then start Google OAuth
 // Who can call it: unauthenticated users clicking "Sign up as Teacher"
 
+
 import { createClient } from "@/lib/supabase/server"
 import { cookies } from "next/headers"
 import { NextRequest, NextResponse } from "next/server"
