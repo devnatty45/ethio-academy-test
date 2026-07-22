@@ -44,6 +44,7 @@ export default async function ManageTeachersPage() {
     )
     .eq("branch_id", adminProfile?.assigned_branch_id)
     .order("created_at", { ascending: false })
+  console.log("Fetched Teachers:", branchTeachers, "Error:", teachersError)
 
   if (teachersError) {
     console.error("Failed to load branch teachers:", teachersError)
