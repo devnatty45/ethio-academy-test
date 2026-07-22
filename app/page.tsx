@@ -113,6 +113,17 @@ export default async function HomePage() {
           {/* Sign-in button — YOUR COMPONENT, UNTOUCHED */}
           <SignInButton />
 
+          {/* Teacher signup entry point */}
+<div className="flex items-center justify-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+  <span>Are you a teacher?</span>
+  
+    href="/auth/teacher-signin"
+    className="font-semibold text-[#6c63ff] hover:text-[#5750d9] transition-colors"
+  >
+    Sign up as Teacher
+  </a>
+</div>
+
           {/* Notice */}
           <div className="flex items-start gap-3 bg-[#6c63ff]/5 border border-[#6c63ff]/15 rounded-xl px-4 py-3">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6c63ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
