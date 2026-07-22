@@ -85,6 +85,18 @@ export default async function BranchDashboardPage() {
                 </span>
               </Button>
             </Link>
+            // app/dashboard/branch/page.tsx — add this Link next to the existing "Academic Results" button
+
+<Link href="/dashboard/branch/teachers">
+  <Button variant="outline" className="rounded-xl border-[#6c63ff]/30 text-[#6c63ff] hover:bg-[#6c63ff]/5">
+    <span className="flex items-center gap-2">
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-8a4 4 0 11-8 0 4 4 0 018 0zm6 3a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+      Manage Teachers
+    </span>
+  </Button>
+</Link>
           </div>
         </div>
 
