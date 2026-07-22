@@ -25,11 +25,15 @@ export default async function TeacherDashboardPage() {
     redirect("/auth/route-to-dashboard")
   }
 
-  const { data: profile } = await adminClient
-    .from("teacher_profiles")
-    .select("id, full_name, status, branch_id, branches(name)")
-    .eq("user_id", user.id)
-    .single()
+  const { data: branchTeachers, error: teachersError } = await adminClient
+  .from("teacher_profiles")
+  .select("id, full_name, phone, status, created_at, user_id, users!teacher_profiles_user_id_fkey(email)")
+  .eq("branch_id", adminProfile?.assigned_branch_id)
+  .order("created_at", { ascending: false })
+
+if (teachersError) {
+  console.error("Failed to load branch teachers:", teachersError)
+}
 
   if (!profile) {
     redirect("/auth/teacher-onboarding")
