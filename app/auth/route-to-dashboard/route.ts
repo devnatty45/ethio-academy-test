@@ -2,7 +2,6 @@
 // Purpose: Read user role from DB and redirect to correct dashboard
 // Who can call it: authenticated users only
 // Called after OAuth callback and after any login
-
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { cookies } from "next/headers"
@@ -16,23 +15,20 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url))
   }
 
-  // Check for pending co-guardian invite token
   const cookieStore = await cookies()
-  const pendingInviteToken = cookieStore.get("pending_invite_token")?.value
 
+  // Check for pending co-guardian invite token
+  const pendingInviteToken = cookieStore.get("pending_invite_token")?.value
   if (pendingInviteToken) {
-    // Clear the cookie
     cookieStore.delete("pending_invite_token")
-    // Redirect to invite page with token
     return NextResponse.redirect(
-      new URL(
-        `/invite/co-guardian?token=${pendingInviteToken}`,
-        request.url
-      )
+      new URL(`/invite/co-guardian?token=${pendingInviteToken}`, request.url)
     )
   }
 
-  // Normal role-based routing
+  // Check for pending teacher signup intent
+  const pendingSignupRole = cookieStore.get("pending_signup_role")?.value
+
   const adminClient = createAdminClient()
   const { data: userData } = await adminClient
     .from("users")
@@ -41,16 +37,31 @@ export async function GET(request: NextRequest) {
     .single()
 
   if (!userData) {
+    // No users row yet — this is a first-time sign-in.
+    // Only GUARDIAN or TEACHER are ever allowed here; anything else is ignored.
+    const roleToCreate = pendingSignupRole === "TEACHER" ? "TEACHER" : "GUARDIAN"
+
     await adminClient.from("users").insert({
       id: user.id,
       email: user.email ?? "",
       full_name: user.user_metadata?.full_name ?? null,
-      role: "GUARDIAN",
+      role: roleToCreate,
       status: "ACTIVE",
     })
-    return NextResponse.redirect(
-      new URL("/dashboard/guardian", request.url)
-    )
+
+    if (roleToCreate === "TEACHER") {
+      cookieStore.delete("pending_signup_role")
+      return NextResponse.redirect(
+        new URL("/auth/teacher-onboarding", request.url)
+      )
+    }
+
+    return NextResponse.redirect(new URL("/dashboard/guardian", request.url))
+  }
+
+  // Existing user — clear any stale signup-intent cookie, it's irrelevant now
+  if (pendingSignupRole) {
+    cookieStore.delete("pending_signup_role")
   }
 
   if (userData.status === "DEACTIVATED") {
@@ -62,17 +73,27 @@ export async function GET(request: NextRequest) {
 
   switch (userData.role) {
     case "GUARDIAN":
-      return NextResponse.redirect(
-        new URL("/dashboard/guardian", request.url)
-      )
+      return NextResponse.redirect(new URL("/dashboard/guardian", request.url))
     case "BRANCH_ADMIN":
-      return NextResponse.redirect(
-        new URL("/dashboard/branch", request.url)
-      )
+      return NextResponse.redirect(new URL("/dashboard/branch", request.url))
     case "MASTER_ADMIN":
-      return NextResponse.redirect(
-        new URL("/dashboard/master", request.url)
-      )
+      return NextResponse.redirect(new URL("/dashboard/master", request.url))
+    case "TEACHER": {
+      // Check whether they've completed onboarding (teacher_profiles row exists)
+      const { data: teacherProfile } = await adminClient
+        .from("teacher_profiles")
+        .select("status")
+        .eq("user_id", user.id)
+        .single()
+
+      if (!teacherProfile) {
+        return NextResponse.redirect(
+          new URL("/auth/teacher-onboarding", request.url)
+        )
+      }
+
+      return NextResponse.redirect(new URL("/dashboard/teacher", request.url))
+    }
     default:
       return NextResponse.redirect(new URL("/", request.url))
   }
