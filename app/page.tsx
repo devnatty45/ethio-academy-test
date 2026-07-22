@@ -119,7 +119,7 @@ export default async function HomePage() {
   
     href="/auth/teacher-signin"
     className="font-semibold text-[#6c63ff] hover:text-[#5750d9] transition-colors"
-  >
+  &gt;
     Sign up as Teacher
   </a>
 </div>
