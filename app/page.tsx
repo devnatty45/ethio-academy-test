@@ -116,7 +116,7 @@ export default async function HomePage() {
           {/* Teacher signup entry point */}
 <div className="flex items-center justify-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
   <span>Are you a teacher?</span>
-  
+  <a
     href="/auth/teacher-signin"
     className="font-semibold text-[#6c63ff] hover:text-[#5750d9] transition-colors"
   >
