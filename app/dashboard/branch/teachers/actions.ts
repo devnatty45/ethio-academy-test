@@ -16,7 +16,7 @@ export async function searchTeacherByEmail(email: string) {
     .from("users")
     .select(`
       id, email, full_name,
-      teacher_profiles (
+      teacher_profiles!teacher_profiles_user_id_fkey (
         id, full_name, phone, branch_id, status, created_at,
         branches (name)
       )
@@ -26,7 +26,8 @@ export async function searchTeacherByEmail(email: string) {
     .limit(10)
 
   if (error) {
-    return { error: "Search failed. Please try again." }
+    console.error("Teacher search error:", error)
+    return { error: `Search failed: ${error.message}` }
   }
 
   return { results: data }
