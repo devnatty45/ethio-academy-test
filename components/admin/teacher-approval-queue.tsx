@@ -4,6 +4,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation" // ADD THIS
 import { Button } from "@/components/ui/button"
 import {
   searchTeacherByEmail,
@@ -51,6 +52,7 @@ export default function TeacherApprovalQueue({
   branches: Branch[]
   currentBranchId: string
 }) {
+  const router = useRouter() // ADD THIS
   const [tab, setTab] = useState<"pending" | "active" | "suspended">("pending")
   const [searchEmail, setSearchEmail] = useState("")
   const [searchResults, setSearchResults] = useState<any[] | null>(null)
@@ -79,18 +81,21 @@ export default function TeacherApprovalQueue({
       await approveTeacher(teacherProfileId, branchId)
       setSearchResults(null)
       setSearchEmail("")
+      router.refresh() // ADD THIS
     })
   }
 
   function handleSuspend(id: string) {
     startTransition(async () => {
       await suspendTeacher(id)
+      router.refresh() // ADD THIS
     })
   }
 
   function handleReactivate(id: string) {
     startTransition(async () => {
       await reactivateTeacher(id)
+      router.refresh() // ADD THIS
     })
   }
 
