@@ -4,6 +4,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { redirect } from "next/navigation"
+import Link from "next/link"
 
 export default async function TeacherDashboardPage() {
   const supabase = await createClient()
@@ -79,9 +80,18 @@ export default async function TeacherDashboardPage() {
     )
   }
 
-  // ── ACTIVE STATE ──
-  // teacher_subject_assignments doesn't exist yet — placeholder empty state for now
-  const assignments: any[] = []
+  // ── ACTIVE STATE — real assignment cards ──
+  const { data: assignments } = await adminClient
+    .from("teacher_subject_assignments")
+    .select(`
+      id,
+      section_id,
+      subject_id,
+      sections (name, grade_id, stream_id, grades(name), streams(name)),
+      subjects (name, grading_type)
+    `)
+    .eq("teacher_id", profile.id)
+    .eq("is_active", true)
 
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-[#0a0d2e] p-6">
@@ -103,7 +113,7 @@ export default async function TeacherDashboardPage() {
             My Assigned Grades & Sections
           </h2>
 
-          {assignments.length === 0 ? (
+          {!assignments || assignments.length === 0 ? (
             <div className="text-center py-10">
               <p className="text-sm text-gray-400">
                 No subject or section assignments yet. A branch admin will
@@ -111,8 +121,34 @@ export default async function TeacherDashboardPage() {
               </p>
             </div>
           ) : (
-            <div className="grid gap-3">
-              {/* Assignment cards will render here once teacher_subject_assignments exists */}
+            <div className="grid sm:grid-cols-2 gap-3">
+              {assignments.map((a: any) => {
+                const section = Array.isArray(a.sections) ? a.sections[0] : a.sections
+                const subject = Array.isArray(a.subjects) ? a.subjects[0] : a.subjects
+                const grade = Array.isArray(section?.grades) ? section?.grades[0] : section?.grades
+                const stream = Array.isArray(section?.streams) ? section?.streams[0] : section?.streams
+
+                return (
+                  <Link
+                    key={a.id}
+                    href={`/dashboard/teacher/gradebook/${a.id}`}
+                    className="border border-gray-100 dark:border-white/10 rounded-xl p-4 hover:border-[#6c63ff]/40 hover:bg-[#6c63ff]/5 transition-all"
+                  >
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {subject?.name}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {grade?.name} — {section?.name}
+                      {stream && ` (${stream.name})`}
+                    </p>
+                    {subject?.grading_type === "LETTER" && (
+                      <span className="inline-block mt-2 text-xs font-normal text-gray-500 bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded-full">
+                        Letter grade
+                      </span>
+                    )}
+                  </Link>
+                )
+              })}
             </div>
           )}
         </div>
