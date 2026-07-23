@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { redirect, notFound } from "next/navigation"
-import Link from "next/link"
+import Link from "next/link" 
 import GradebookClient from "@/components/teacher/gradebook-client"
 
 export default async function GradebookPage({
