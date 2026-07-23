@@ -6,7 +6,7 @@
 import { useState, useEffect, useTransition } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { saveMark } from "@/app/dashboard/teacher/gradebook/[assignmentId]/actions"
-
+ 
 type Term = { id: string; name: string; term_order: number; status: string }
 type Student = { enrollment_id: string; full_name: string; stu_id: string }
 type MarkRow = {
